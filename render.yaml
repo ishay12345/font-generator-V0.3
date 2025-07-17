@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: font-generator
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    region: frankfurt
+    envVars:
+      - key: FLASK_ENV
+        value: production
+    healthCheckPath: /
