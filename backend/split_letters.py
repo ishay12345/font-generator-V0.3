@@ -3,7 +3,7 @@ import os
 import numpy as np
 from pathlib import Path
 
-def split_letters(image_path, output_folder):
+def split_letters_from_image(image_path, output_folder):
     """
     Split an A4 image containing Hebrew letters into individual letter images.
     
