@@ -1,34 +1,47 @@
-<<<<<<< HEAD
-# Use Python 3.10 image
+
 FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
 
-# Set working directory
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=backend/server.py
+ENV FLASK_ENV=production
+
+
 WORKDIR /app
 
-# Install system dependencies
+
 RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
-    potrace \
-    && apt-get clean
+    fontforge \
+    libfreetype6-dev \
+    libpng-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    libopencv-dev \
+    python3-opencv \
+    libxml2-dev \
+    libspiro-dev \
+    libuninameslist-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency list
-COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
+COPY backend/requirements.txt .
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the app files
+
 COPY . .
 
-# Expose port
+
+RUN mkdir -p /app/backend/uploads \
+    /app/backend/split_letters_output \
+    /app/backend/bw_letters \
+    /app/backend/svg_letters \
+    /app/backend/fonts
+
+
 EXPOSE 5000
 
-# Run the server
-CMD ["python", "backend/server.py"]
-=======
->>>>>>> c5fdb8f (הוספת Dockerfile ו־render.yaml לפרויקט)
+
+RUN pip install gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "backend.server:app"]
