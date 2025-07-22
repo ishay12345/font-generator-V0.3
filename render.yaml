@@ -9,4 +9,17 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: PYTHONUNBUFFERED
+        value: 1  # Ensures Python output is logged in real-time
     healthCheckPath: /
+    disk:
+      - name: uploads
+        mountPath: /app/backend/uploads
+      - name: outputs
+        mountPath: /app/backend/split_letters_output
+      - name: bw_letters
+        mountPath: /app/backend/bw_letters
+      - name: svg_letters
+        mountPath: /app/backend/svg_letters
+      - name: fonts
+        mountPath: /app/backend/fonts
