@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from split_letters import split_letters
+from split_letters import split_letters_from_image
 import os
 from pathlib import Path
 
