@@ -1,11 +1,7 @@
+import fontforge
 import os
-from defcon import Font
-from ufo2ft import compileTTF
-from fontTools.svgLib.path import parse_path
-from fontTools.pens.ttGlyphPen import TTGlyphPen
-from xml.dom import minidom
 
-# מיפוי שמות האותיות לעברית
+# מיפוי: שם אות → יוניקוד עברי
 letter_map = {
     "alef": 0x05D0, "bet": 0x05D1, "gimel": 0x05D2, "dalet": 0x05D3,
     "he": 0x05D4, "vav": 0x05D5, "zayin": 0x05D6, "het": 0x05D7,
@@ -17,52 +13,64 @@ letter_map = {
     "final_pe": 0x05E3, "final_tsadi": 0x05E5
 }
 
-def generate_ttf(svg_folder, output_path):
-    print("🚀 Generating font with defcon + ufo2ft")
-    print("📁 SVG folder:", svg_folder)
-    print("📄 Output path:", output_path)
+def generate_ttf(svg_folder, output_ttf):
+    try:
+        font = fontforge.font()
+        font.encoding = "UnicodeFull"
+        font.fontname = "HebrewFont"
+        font.familyname = "Hebrew Font"
+        font.fullname = "Hebrew Font"
+        font.em = 1000
+        font.ascent = 800
+        font.descent = 200
 
-    font = Font()
-    font.info.familyName = "HebrewFont"
-    font.info.styleName = "Regular"
-    font.info.unitsPerEm = 1000
-    font.info.ascender = 800
-    font.info.descender = -200
+        glyph_count = 0
 
-    for filename in os.listdir(svg_folder):
-        if not filename.endswith(".svg"):
-            continue
+        for filename in os.listdir(svg_folder):
+            if not filename.endswith(".svg"):
+                continue
 
-        parts = filename.split("_")
-        if len(parts) != 2:
-            continue
+            parts = filename.split("_", 1)
+            if len(parts) != 2:
+                print(f"⚠️ שם לא תקני: {filename}")
+                continue
 
-        name = parts[1].replace(".svg", "")
-        if name not in letter_map:
-            continue
+            name = parts[1].replace(".svg", "")
+            if name not in letter_map:
+                print(f"⚠️ אות לא במפה: {name}")
+                continue
 
-        unicode_val = letter_map[name]
-        glyph = font.newGlyph(name)
-        glyph.unicode = unicode_val
-        glyph.width = 600
+            code = letter_map[name]
+            svg_path = os.path.join(svg_folder, filename)
 
-        svg_path = os.path.join(svg_folder, filename)
-        doc = minidom.parse(svg_path)
-        paths = doc.getElementsByTagName('path')
-        if not paths:
-            print(f"⚠ לא נמצא path בתוך {filename}")
-            continue
+            g = font.createChar(code, name)
+            try:
+                g.importOutlines(svg_path)
 
-        d = paths[0].getAttribute('d')
-        doc.unlink()
+                if g.boundingBox() == (0, 0, 0, 0):
+                    print(f"⚠️ SVG ריק: {filename}")
+                    continue
 
-        pen = TTGlyphPen(None)
-        try:
-            path = parse_path(d, pen)  # ✅ התיקון המרכזי
-            glyph._glyph = pen.glyph()
-        except Exception as e:
-            print(f"⚠ שגיאה ב־{filename}:", e)
+                xmin, ymin, xmax, ymax = g.boundingBox()
+                g.width = int(xmax - xmin) + 80
+                g.left_side_bearing = 27
+                g.right_side_bearing = 27
 
-    ttf = compileTTF(font)
-    ttf.save(output_path)
-    print("✅ Font saved at:", output_path)
+                glyph_count += 1
+                print(f"✅ {filename} → {name} ✓")
+
+            except Exception as e:
+                print(f"❌ שגיאה בקובץ {filename}: {e}")
+                continue
+
+        if glyph_count == 0:
+            print("❌ לא נטען אף גליף – בדוק את קבצי ה־SVG")
+            return False
+
+        font.generate(output_ttf)
+        print(f"✅ הפונט נוצר בהצלחה: {output_ttf}")
+        return True
+
+    except Exception as e:
+        print(f"❌ שגיאה כללית ביצירת הפונט: {e}")
+        return False
