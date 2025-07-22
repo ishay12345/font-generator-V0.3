@@ -1,9 +1,9 @@
 from flask import Flask, request, render_template, send_file, url_for
 import os
 from backend.split_letters import split_letters_from_image
-from bw_converter import convert_to_bw
-from svg_converter import convert_to_svg
-from generate_font import generate_ttf
+from backend.bw_converter import convert_to_bw
+from backend.svg_converter import convert_to_svg
+from backend.generate_font import generate_ttf
 
 # ---- תיקיות עבודה ----
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
