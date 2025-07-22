@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, send_file, url_for
 import os
-from split_letters import split_letters_from_image
+from backend.split_letters import split_letters_from_image
 from bw_converter import convert_to_bw
 from svg_converter import convert_to_svg
 from generate_font import generate_ttf
